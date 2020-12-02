@@ -10,8 +10,8 @@ import qualified EarleyM as EM (
   Parsing(..),ParseError(..),SyntaxError(..),Ambiguity(..),Pos)
 
 instance Functor Par where fmap = liftM
-instance Applicative Par where pure = return; (<*>) = ap
-instance Monad Par where return = Ret; (>>=) = Bind
+instance Applicative Par where pure = Ret; (<*>) = ap
+instance Monad Par where (>>=) = Bind
 
 digit :: Par Int
 word :: Par String

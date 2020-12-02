@@ -3,7 +3,7 @@ module Day2 (main) where
 
 import Data.Bits (xor)
 import Misc (check)
-import ParE as Par (Par,parse,many,int,key,char,word,sp,nl)
+import Par4 as Par (Par,parse,many,int,lit,char,word,sp,nl)
 
 main :: IO ()
 main = do
@@ -16,9 +16,9 @@ main = do
 
 gram :: Par [(Int,Int,Char,String)]
 gram = many $ do
-  i <- int; key "-"
+  i <- int; lit '-'
   j <- int; sp
-  c <- char; key ":"; sp
+  c <- char; lit ':'; sp
   s <- word; nl
   pure $ (i,j,c,s)
 
