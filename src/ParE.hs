@@ -1,63 +1,55 @@
 
-module Par(Par,parse,many0,int,key,char,ident,space,nl,ws0,ws1) where
+-- | Earley Parser Combinators
+module ParE (Par,parse,int,many,lit,key,char,word,ws0,ws1,sp,nl) where
 
 import Control.Monad (ap,liftM)
+import qualified Data.Char as Char
 
 import qualified EarleyM as EM (
   Gram,Lang,fail,alts,getToken,parse,
   Parsing(..),ParseError(..),SyntaxError(..),Ambiguity(..),Pos)
-import qualified Data.Char as Char
 
 instance Functor Par where fmap = liftM
 instance Applicative Par where pure = return; (<*>) = ap
 instance Monad Par where return = Ret; (>>=) = Bind
 
-parse :: Show a => Par a -> String -> a
-parse par string = runLG string $ langOfPar par
-
-ident :: Par String
-ident = do x <- alpha; xs <- many0 alpha; return (x : xs)
-  where alpha = sat Char.isAlpha
-
-ws0 :: Par ()
-ws0 = skipWhile space
-
-ws1 :: Par ()
-ws1 = do space; ws0
-
+digit :: Par Int
+word :: Par String
+key :: String -> Par ()
 int :: Par Int
+ws0 :: Par ()
+ws1 :: Par ()
+skipWhile :: Par () -> Par ()
+many :: Par a -> Par [a]
+sp :: Par ()
+nl :: Par ()
+lit :: Char -> Par ()
+sat :: (Char -> Bool) -> Par Char
+char :: Par Char
+
+word = do x <- alpha; xs <- many alpha; return (x : xs) where alpha = sat Char.isAlpha
+
 int = do
   d0 <- digit
-  ds <- many0 digit
+  ds <- many digit
   return $ foldl (\acc d -> 10*acc + d) d0 ds
 
-skipWhile :: Par () -> Par ()
-skipWhile p = do _ <- many0 p; return ()
+ws1 = do sp; ws0
+ws0 = skipWhile sp
 
-many0 :: Par a -> Par [a]
-many0 g = many_g
-  where many_g = Alts [return [], do x <- g; xs <- many_g; return (x : xs)]
+skipWhile p = do _ <- many p; return ()
+many g = Alts [return [], do x <- g; xs <- many g; return (x : xs)]
 
-key :: String -> Par ()
-key cs = mapM_ symbol cs
-  where symbol x = do t <- Token; if t==x then return () else Fail
+digit = do c <- sat Char.isDigit; return (digitOfChar c)
 
-digit :: Par Int
-digit = digit
-  where
-     digit = do c <- sat Char.isDigit; return (digitOfChar c)
-     digitOfChar c = Char.ord c - ord0 where ord0 = Char.ord '0'
+digitOfChar :: Char -> Int
+digitOfChar c = Char.ord c - ord0 where ord0 = Char.ord '0'
 
-space :: Par ()
-space = do _ <- sat Char.isSpace; return ()
-
-nl :: Par ()
-nl = do _ <- sat (== '\n'); return ()
-
-sat :: (Char -> Bool) -> Par Char
+sp = lit ' '
+nl = lit '\n'
+lit x = do _ <- sat (== x); pure ()
 sat pred = do c <- Token; if pred c then return c else Fail
-
-char :: Par Char
+key cs = mapM_ lit cs
 char = Token
 
 data Par a where
@@ -66,6 +58,9 @@ data Par a where
   Fail :: Par a
   Token :: Par Char
   Alts :: [Par a] -> Par a
+
+parse :: Show a => Par a -> String -> a
+parse par string = runLG string $ langOfPar par
 
 withTok :: EM.Gram Char -> Par a -> EM.Gram a
 withTok tok = conv

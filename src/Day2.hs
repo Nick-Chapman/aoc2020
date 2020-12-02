@@ -3,7 +3,7 @@ module Day2 (main) where
 
 import Data.Bits (xor)
 import Misc (check)
-import Par (Par,parse,many0,int,key,char,ident,space,nl)
+import ParE as Par (Par,parse,many,int,key,char,word,sp,nl)
 
 main :: IO ()
 main = do
@@ -15,11 +15,11 @@ main = do
   print ("day2, part2", check 325 res2)
 
 gram :: Par [(Int,Int,Char,String)]
-gram = many0 $ do
+gram = many $ do
   i <- int; key "-"
-  j <- int; space
-  c <- char; key ":"; space
-  s <- ident; nl
+  j <- int; sp
+  c <- char; key ":"; sp
+  s <- word; nl
   pure $ (i,j,c,s)
 
 validate1 ::(Int,Int,Char,String) -> Bool
