@@ -15,19 +15,14 @@ main = do
   let danger = Set.fromList
         [ (x,y) | (y,line) <- zip [0::Int ..] grid,  (x,cell) <- zip [0::Int ..] line, cell ]
   let at (x,y) = Set.member (x `mod` width, y) danger
-  let onslope g =
-        length [ (x,y) | y <- [0..height-1], let x = g * y, let tree = at (x,y), tree ]
+  let onslope g = length [ (x,y) | y <- [0..height-1], let x = g * y, at (x,y) ]
 
   print ("day3, part1", check 268 (onslope 3))
 
   -- hack the single deep slope as a special case
-  let deepSlope =
-        length [ (x,y) | y <- everyOther [0..height-1], let x = y `div` 2 , let tree = at (x,y), tree ]
+  let deepSlope = length [ (x,y) | x <- [0 .. (height-1) `div` 2], let y = 2 * x, at (x,y)]
   let part2 = Prelude.foldl (*) 1 ([ onslope g | g <- [1,3,5,7] ] ++ [deepSlope])
   print ("day3, part2", check 3093068400 part2)
-
-everyOther :: [a] -> [a]
-everyOther = \case [] -> []; [x] -> [x]; x:_:xs -> x:everyOther xs
 
 gram :: Par [[Bool]]
 gram = many line
