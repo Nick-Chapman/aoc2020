@@ -1,6 +1,6 @@
 
 -- | 4-value Parser Combinators
-module Par4 (Par,parse,int,many,lit,key,char,word,ws0,ws1,sp,nl) where
+module Par4 (Par,parse,alts,int,many,lit,key,char,word,ws0,ws1,sp,nl) where
 
 import Control.Monad (ap,liftM)
 import qualified Data.Char as Char
@@ -22,6 +22,9 @@ nl :: Par ()
 lit :: Char -> Par ()
 sat :: (Char -> Bool) -> Par Char
 char :: Par Char
+
+alts :: [Par a] -> Par a
+alts = foldl Alt Fail
 
 word = do x <- alpha; xs <- many alpha; return (x : xs) where alpha = sat Char.isAlpha
 
@@ -75,8 +78,9 @@ parse parStart chars  = do
 
   where
     report :: String -> String
-    report remains = show (chars !! pos) ++ " at " ++ lc pos
+    report remains = item ++ " at " ++ lc pos
       where
+        item = if pos == length chars then "<EOF>" else show (chars !! pos)
         pos = length chars - length remains
 
     lc :: Int -> String

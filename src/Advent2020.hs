@@ -3,6 +3,7 @@ module Advent2020 where
 import System.Environment (getArgs)
 import qualified Day1
 import qualified Day2
+import qualified Day3
 
 main :: IO ()
 main = do
@@ -14,4 +15,5 @@ mains :: [IO ()]
 mains =
   [ Day1.main
   , Day2.main
+  , Day3.main
   ]
