@@ -1,6 +1,6 @@
 
 -- | Earley Parser Combinators
-module ParE (Par,parse,alts,int,many,lit,key,sat,char,word,ws0,ws1,sp,nl) where
+module ParE (Par,parse,fail,alts,int,many,lit,key,sat,char,word,ws0,ws1,sp,nl) where
 
 import Control.Monad (ap,liftM)
 import qualified Data.Char as Char

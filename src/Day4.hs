@@ -3,7 +3,7 @@ module Day4 (main) where
 
 import qualified Data.Char as Char (isNumber,isAlpha)
 import Misc (check)
-import ParE as Par (Par,parse,alts,many,lit,key,sat,nl,sp)
+import Par4 as Par (Par,parse,alts,many,lit,word,sat,nl,sp)
 
 main :: IO ()
 main = do
@@ -81,11 +81,16 @@ validate (KV k v) = case k of
 
 
 gram :: Par [Pass]
-gram = separated blankline passport
+gram = separated nl passport
   where
-    blankline = do nl; nl
+    passport :: Par Pass
+    passport = (Pass . concat) <$> many line
 
-    passport = Pass <$> separated (alts [sp,nl]) kv
+    line :: Par [KV]
+    line = do
+      xs <- separated (alts [sp]) kv
+      nl
+      pure xs
 
     kv = do
       k <- field
@@ -102,22 +107,22 @@ gram = separated blankline passport
 
 separated :: Par () -> Par a -> Par [a]
 separated sep p = do
-  alts [ do x <- p; pure [x]
+  x <- p
+  alts [ pure [x]
        , do
-           x <- p
            sep
            xs <- separated sep p
            pure $ x:xs
        ]
 
 field :: Par Field
-field = alts
-  [ do key "byr"; pure Byr
-  , do key "iyr"; pure Iyr
-  , do key "eyr"; pure Eyr
-  , do key "hgt"; pure Hgt
-  , do key "hcl"; pure Hcl
-  , do key "ecl"; pure Ecl
-  , do key "pid"; pure Pid
-  , do key "cid"; pure Cid
-  ]
+field = word >>= \case
+  "byr" -> pure Byr
+  "iyr" -> pure Iyr
+  "eyr" -> pure Eyr
+  "hgt" -> pure Hgt
+  "hcl" -> pure Hcl
+  "ecl" -> pure Ecl
+  "pid" -> pure Pid
+  "cid" -> pure Cid
+  _ -> alts []

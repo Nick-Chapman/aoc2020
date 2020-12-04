@@ -1,6 +1,6 @@
 
 -- | 4-value Parser Combinators
-module Par4 (Par,parse,alts,int,many,lit,key,char,word,ws0,ws1,sp,nl) where
+module Par4 (Par,parse,alts,int,many,lit,key,sat,char,word,ws0,ws1,sp,nl) where
 
 import Control.Monad (ap,liftM)
 import qualified Data.Char as Char
