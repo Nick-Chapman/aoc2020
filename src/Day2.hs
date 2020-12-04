@@ -1,9 +1,10 @@
 
 module Day2 (main) where
 
+import Control.Applicative (many)
 import Data.Bits (xor)
 import Misc (check)
-import Par4 as Par (Par,parse,many,int,lit,char,word,sp,nl)
+import Par4 as Par (Par,parse,int,lit,char,word,sp,nl)
 
 main :: IO ()
 main = do

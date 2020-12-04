@@ -1,9 +1,10 @@
 
 module Day4 (main) where
 
-import qualified Data.Char as Char (isNumber,isAlpha)
+import Control.Applicative (many,some)
 import Misc (check)
-import Par4 as Par (Par,parse,alts,many,lit,word,sat,nl,sp)
+import Par4 as Par (Par,parse,alts,lit,word,sat,nl,sp)
+import qualified Data.Char as Char (isNumber,isAlpha)
 
 main :: IO ()
 main = do
@@ -98,12 +99,7 @@ gram = separated nl passport
       v <- word4
       pure $ KV k v
 
-    word4 = do
-      x <- allowed
-      xs <- many allowed
-      return (x : xs)
-      where
-        allowed = sat (\c -> Char.isAlpha c || Char.isNumber c || c == '#')
+    word4 = some $ sat (\c -> Char.isAlpha c || Char.isNumber c || c == '#')
 
 separated :: Par () -> Par a -> Par [a]
 separated sep p = do

@@ -1,55 +1,45 @@
 
 -- | 4-value Parser Combinators
-module Par4 (Par,parse,alts,int,many,lit,key,sat,char,word,ws0,ws1,sp,nl) where
+module Par4 (Par,parse,word,key,int,ws0,ws1,sp,nl,lit,sat,char,alts) where
 
+import Control.Applicative (Alternative,empty,(<|>),many,some)
 import Control.Monad (ap,liftM)
 import qualified Data.Char as Char
 
 instance Functor Par where fmap = liftM
 instance Applicative Par where pure = Ret; (<*>) = ap
+instance Alternative Par where empty = Fail; (<|>) = Alt
 instance Monad Par where (>>=) = Bind
 
-digit :: Par Int
+alts :: [Par a] -> Par a
 word :: Par String
 key :: String -> Par ()
 int :: Par Int
-ws0 :: Par ()
 ws1 :: Par ()
-skipWhile :: Par () -> Par ()
-many :: Par a -> Par [a]
+ws0 :: Par ()
+digit :: Par Int
 sp :: Par ()
 nl :: Par ()
 lit :: Char -> Par ()
 sat :: (Char -> Bool) -> Par Char
 char :: Par Char
 
-alts :: [Par a] -> Par a
 alts = foldl Alt Fail
-
-word = do x <- alpha; xs <- many alpha; return (x : xs) where alpha = sat Char.isAlpha
-
-int = do
-  d0 <- digit
-  ds <- many digit
-  return $ foldl (\acc d -> 10*acc + d) d0 ds
-
+word = some $ sat Char.isAlpha
+key cs = mapM_ lit cs
+int = foldl (\acc d -> 10*acc + d) 0 <$> some digit
 ws1 = do sp; ws0
-ws0 = skipWhile sp
-
-skipWhile p = do _ <- many p; return ()
-many g = Alt (return []) (do x <- g; xs <- many g; return (x : xs))
-
-digit = do c <- sat Char.isDigit; return (digitOfChar c)
-
-digitOfChar :: Char -> Int
-digitOfChar c = Char.ord c - ord0 where ord0 = Char.ord '0'
-
+ws0 = do _ <- many sp; return ()
+digit = digitOfChar <$> sat Char.isDigit
 sp = lit ' '
 nl = lit '\n'
 lit x = do _ <- sat (== x); pure ()
-key cs = mapM_ lit cs
-char = sat (const True)
+
 sat = Satisfy
+char = sat (const True)
+
+digitOfChar :: Char -> Int
+digitOfChar c = Char.ord c - ord0 where ord0 = Char.ord '0'
 
 data Par a where
   Ret :: a -> Par a
