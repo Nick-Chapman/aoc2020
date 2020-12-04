@@ -1,6 +1,6 @@
 
 -- | Earley Parser Combinators
-module ParE (Par,parse,int,many,lit,key,char,word,ws0,ws1,sp,nl) where
+module ParE (Par,parse,alts,int,many,lit,key,sat,char,word,ws0,ws1,sp,nl) where
 
 import Control.Monad (ap,liftM)
 import qualified Data.Char as Char
@@ -26,6 +26,9 @@ nl :: Par ()
 lit :: Char -> Par ()
 sat :: (Char -> Bool) -> Par Char
 char :: Par Char
+
+alts :: [Par a] -> Par a
+alts = Alts
 
 word = do x <- alpha; xs <- many alpha; return (x : xs) where alpha = sat Char.isAlpha
 
