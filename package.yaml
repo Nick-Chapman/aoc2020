@@ -49,6 +49,8 @@ ghc-options:
 - -Werror
 - -Wall
 - -Wno-name-shadowing
+#- -Wno-unused-top-binds
+#- -Wno-unused-imports
 
 library:
   source-dirs: src
