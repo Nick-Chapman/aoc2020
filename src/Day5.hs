@@ -3,7 +3,7 @@ module Day5 (main) where
 
 import Control.Applicative (some)
 import Misc (check)
-import Par4 as Par (Par,parse,nl,alts,lit)
+import Par (Par,parse,nl,alts,lit)
 
 main :: IO ()
 main = do

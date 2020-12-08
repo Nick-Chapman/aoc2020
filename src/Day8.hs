@@ -3,7 +3,7 @@ module Day8 (main) where
 
 import Data.Set (Set)
 import Misc (check)
-import Par4 as Par (Par,parse,nl,sp,lit,word,int,alts,separated)
+import Par (Par,parse,nl,sp,lit,word,int,alts,separated)
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 

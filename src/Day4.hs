@@ -3,7 +3,7 @@ module Day4 (main) where
 
 import Control.Applicative (many,some)
 import Misc (check)
-import Par4 as Par (Par,parse,alts,lit,word,sat,nl,sp)
+import Par (Par,parse,alts,lit,word,sat,nl,sp)
 import qualified Data.Char as Char (isNumber,isAlpha)
 
 main :: IO ()

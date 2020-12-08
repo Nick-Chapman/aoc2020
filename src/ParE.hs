@@ -7,7 +7,7 @@ import Control.Monad (ap,liftM)
 import qualified Data.Char as Char
 
 import qualified EarleyM as EM (
-  Gram,Lang,fail,alts,getToken,parse,
+  Gram,Lang,fail,alts,getToken,parseAmb,
   Parsing(..),ParseError(..),SyntaxError(..),Ambiguity(..),Pos)
 
 instance Functor Par where fmap = liftM
@@ -77,14 +77,15 @@ langOfPar par = do
 
 runLG :: Show a => String -> EM.Lang Char (EM.Gram a) -> a
 runLG s lang =
-  case EM.parse lang s of
+  case EM.parseAmb lang s of
     EM.Parsing{EM.outcome} -> case outcome of
-      Left pe -> error $ prettyPE pe
-      Right a -> a
+      Left pe -> error $ prettySE pe
+      Right [a] -> a
+      Right xs -> error $ show ("ambiguity", length xs)
   where
 
-    prettyPE :: EM.ParseError -> String
-    prettyPE = \case
+    _prettyPE :: EM.ParseError -> String
+    _prettyPE = \case
       EM.AmbiguityError (EM.Ambiguity tag p1 p2) -> show ("Ambiguity",tag,p1,p2)
       EM.SyntaxError se -> prettySE se
 

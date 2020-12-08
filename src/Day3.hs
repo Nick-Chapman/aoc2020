@@ -3,7 +3,7 @@ module Day3 (main) where
 
 import Control.Applicative (many)
 import Misc (check)
-import Par4 as Par (Par,alts,parse,lit,nl)
+import Par (Par,alts,parse,lit,nl)
 import qualified Data.Set as Set (fromList,member)
 
 main :: IO ()
