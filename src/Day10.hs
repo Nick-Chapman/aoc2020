@@ -29,14 +29,10 @@ part2 :: [Int] ->Int
 part2 xs = do
   let ys = sort xs
   let ds = [ b-a | (a,b) <- zip (0:ys) (ys++[last ys+3]) ]
-  foldl (*) 1 [ qaz (length run) | run <- splitWhen (==3) ds ]
-
+  product [ fib3 (length run) | run <- splitWhen (==3) ds ]
   where
-    qaz :: Int -> Int -- what is this function?
-    qaz = \case
-      0 -> 1
-      1 -> 1
-      2 -> 2
-      3 -> 4
-      4 -> 7
-      n -> error (show n)
+    fib3 :: Int -> Int -- sequence defined by summing previous 3 numbers
+    fib3 n = if
+      | n < 0 -> 0
+      | n == 0 -> 1
+      | otherwise -> fib3 (n-1) + fib3 (n-2) + fib3 (n-3)
