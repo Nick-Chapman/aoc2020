@@ -36,8 +36,8 @@ part2 xs = steps [ Equ {d, r = (d-i) `mod` d} | (i,Just d) <- zip [0..] xs ]
 -- modulo division: returns a/b (m)
 -- i.e. if: mDivide a b m == n, then: n*b == i*m+a for some i
 mDivide :: Int -> Int -> Int -> Int
-mDivide a b m = loop 0 0 0 where
-  loop n nb r = if r == a then n else loop (n+1) (nb+b) ((r + b) `mod` m)
+mDivide a b m = loop 0 0 where
+  loop n r = if r == a then n else loop (n+1) ((r + b) `mod` m)
 
 data Input = Input { now :: Int, busses :: [Maybe Int] }
 
