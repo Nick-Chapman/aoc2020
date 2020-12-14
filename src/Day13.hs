@@ -14,7 +14,7 @@ main = do
   print ("day13, part1", check 3269 $ part1 inp)
   let !_ = check 3417 $ part2 [Just 17,Nothing,Just 13,Just 19]
   let !_ = check 1068781 $ part2 (busses sam)
-  print ("day13, part1",  check 672754131923874 $ part2 (busses inp))
+  print ("day13, part2",  check 672754131923874 $ part2 (busses inp))
 
 part1 :: Input -> Int
 part1 Input{now,busses} =
