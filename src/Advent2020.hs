@@ -1,6 +1,13 @@
 module Advent2020 where
 
+import Control.Monad (forM_)
+import Data.List (sortBy)
+import Data.Ord (comparing)
+import GHC.Int (Int64)
+import System.Clock (TimeSpec(..),getTime,Clock(Monotonic))
 import System.Environment (getArgs)
+import Text.Printf (printf)
+
 import qualified Day1
 import qualified Day2
 import qualified Day3
@@ -17,14 +24,8 @@ import qualified Day13
 import qualified Day14
 import qualified Day15
 
-main :: IO ()
-main = do
-  getArgs >>= \case
-    [] -> mapM_ id mains
-    args -> mapM_ (\day -> mains !! (read day - 1)) args
-
-mains :: [IO ()]
-mains =
+mains :: [(Int,IO ())]
+mains = zip [1..]
   [ Day1.main
   , Day2.main
   , Day3.main
@@ -41,3 +42,39 @@ mains =
   , Day14.main
   , Day15.main
   ]
+
+main :: IO ()
+main = do
+  args <- getArgs
+  let selected = if args == [] then  [1..] else map read args
+  let picked = [ x | x@(i,_) <- mains, i `elem` selected ]
+  info <- sequence [ timed day io | (day,io) <- picked ]
+  printTimings info
+  pure ()
+
+data Timing = Timing { day :: Int, time :: Nanos }
+
+timed :: Int -> IO () -> IO Timing
+timed day io = do
+  before <- getTime Monotonic
+  io
+  after <- getTime Monotonic
+  let TimeSpec{sec,nsec} = after - before
+  let time = Nanos (gig * sec + nsec)
+  pure $ Timing {day,time}
+
+printTimings :: [Timing] -> IO ()
+printTimings xs = do
+  putStrLn "\ntimings:"
+  forM_ (sortBy (comparing time) xs) $ \Timing{day,time} -> do
+    putStrLn (printf "- day %2d : " day ++ show time)
+  putStrLn $ "\ntotal = " ++ show (sum (map time xs))
+
+newtype Nanos = Nanos Int64 deriving (Eq,Ord,Num)
+
+instance Show Nanos where
+  show (Nanos i) = printf "%.03fs" dub
+    where dub :: Double = fromIntegral i / fromIntegral gig
+
+gig :: Int64
+gig = 1_000_000_000
