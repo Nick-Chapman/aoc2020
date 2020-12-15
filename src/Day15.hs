@@ -2,8 +2,8 @@
 module Day15 (main) where
 
 import Control.Monad.ST (ST,runST)
+import Data.Array.ST (STUArray,newArray,writeArray,readArray)
 import Data.Map (Map)
-import GHC.Arr (STArray,newSTArray,writeSTArray,readSTArray)
 import Misc (check)
 import qualified Data.Map.Strict as Map
 
@@ -29,16 +29,16 @@ _fast start target = runST go
   where
     go :: ST s Int
     go = do
-      a :: STArray s Int Int <- newSTArray (0,target) 0
-      sequence_ [ writeSTArray a x i | (i,x) <- zip [1::Int ..] (init start) ]
+      a <- newArray (0,target) 0
+      sequence_ [ writeArray a x i | (i,x) <- zip [1::Int ..] (init start) ]
       loop a (length start+1) (last start)
 
-    loop :: STArray s Int Int -> Int -> Int -> ST s Int
+    loop :: STUArray s Int Int -> Int -> Int -> ST s Int
     loop a n h = do
       if n == (target+1) then pure h else do
-        i <- readSTArray a h
+        i <- readArray a h
         let v = if i == 0 then 0 else n-1-i
-        writeSTArray a h (n-1)
+        writeArray a h (n-1)
         loop a (n+1) v
 
 
