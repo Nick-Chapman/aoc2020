@@ -34,14 +34,14 @@ _fast start target = runST go
     go = do
       a <- newArray (0,target) 0
       sequence_ [ writeArray a x i | (i,x) <- zip [1::MyInt ..] (init start) ]
-      loop a (fromIntegral (length start) + 1) (last start)
+      loop a (fromIntegral (length start)) (last start)
 
     loop :: STUArray s MyInt MyInt -> MyInt -> MyInt -> ST s MyInt
     loop a n h = do
-      if n == (target+1) then pure h else do
+      if n == target then pure h else do
         i <- readArray a h
-        let v = if i == 0 then 0 else n-1-i
-        writeArray a h (n-1)
+        let v = if i == 0 then 0 else n - i
+        writeArray a h n
         loop a (n+1) v
 
 
