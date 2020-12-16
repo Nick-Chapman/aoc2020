@@ -6,7 +6,7 @@ import Data.Map (Map)
 import Data.Set (Set,member)
 import Misc (check)
 import Par (Par,parse,separated,nl,alts,lit)
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set (size,fromList)
 
 
