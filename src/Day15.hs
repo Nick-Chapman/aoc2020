@@ -4,6 +4,7 @@ module Day15 (main) where
 import Control.Monad.ST (ST,runST)
 import Data.Array.ST (STUArray,newArray,writeArray,readArray)
 import Data.Map (Map)
+import GHC.Int (Int32)
 import Misc (check)
 import qualified Data.Map.Strict as Map
 
@@ -21,19 +22,21 @@ main = do
   print ("day15, part1", check 959 $ search inp 2020)
   print ("day15, part2", check 116590 $ search inp 30_000_000) -- (fast: aprox 18s)
 
-search :: [Int] -> Int -> Int
+type MyInt = Int32
+
+search :: [MyInt] -> MyInt -> MyInt
 search = _fast
 
-_fast :: [Int] -> Int -> Int
+_fast :: [MyInt] -> MyInt -> MyInt
 _fast start target = runST go
   where
-    go :: ST s Int
+    go :: ST s MyInt
     go = do
       a <- newArray (0,target) 0
-      sequence_ [ writeArray a x i | (i,x) <- zip [1::Int ..] (init start) ]
-      loop a (length start+1) (last start)
+      sequence_ [ writeArray a x i | (i,x) <- zip [1::MyInt ..] (init start) ]
+      loop a (fromIntegral (length start) + 1) (last start)
 
-    loop :: STUArray s Int Int -> Int -> Int -> ST s Int
+    loop :: STUArray s MyInt MyInt -> MyInt -> MyInt -> ST s MyInt
     loop a n h = do
       if n == (target+1) then pure h else do
         i <- readArray a h
