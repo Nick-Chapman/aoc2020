@@ -49,10 +49,10 @@ step1 grid = mapGrid f grid
 
     f pos = \case
       Floor -> Floor
-      Seat -> if count == 0 then Occ else Seat
-      Occ -> if count >= 4 then Seat else Occ
+      Seat -> case occNeighbors of [] -> Occ; _:_ -> Seat -- ==0
+      Occ -> case occNeighbors of _:_:_:_:_ -> Seat; _ -> Occ -- >=4
       where
-        count = length [ () | pos' <- neighbors pos, isOcc pos' ]
+        occNeighbors = [ () | pos' <- neighbors pos, isOcc pos' ]
 
 
 step2 :: Grid -> Grid
@@ -71,10 +71,10 @@ step2 grid = mapGrid f grid
 
     f pos = \case
       Floor -> Floor
-      Seat -> if count == 0 then Occ else Seat
-      Occ -> if count >= 5 then Seat else Occ
+      Seat -> case occNeighbors of [] -> Occ; _:_ -> Seat -- ==0
+      Occ -> case occNeighbors of _:_:_:_:_:_ -> Seat; _ -> Occ -- >=5
       where
-        count = length [ () | dir <- directions, canSeeOcc (move pos dir) dir ]
+        occNeighbors = [ () | dir <- directions, canSeeOcc (move pos dir) dir ]
 
     move (x,y) (dx,dy) = (x+dx,y+dy)
 
