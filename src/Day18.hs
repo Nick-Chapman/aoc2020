@@ -3,7 +3,7 @@ module Day18 (main) where
 
 import Control.Applicative (many)
 import Misc (check)
-import ParE (Par,parse,separated,nl,alts,int,sp,lit)
+import Par4 (Par,parse,separated,nl,alts,int,sp,lit)
 
 main :: IO ()
 main = do
@@ -53,13 +53,15 @@ gram2 :: Par [Exp]
 gram2 = separated nl exp
   where
     atom :: Par Exp
-    atom = alts [ (Num . fromIntegral) <$> int , bracketed exp ]
+    atom = do
+      a <- alts [ (Num . fromIntegral) <$> int , bracketed exp ]
+      alts [sp, pure ()]
+      pure a
 
     thing :: Par Exp
     thing = do
       x <- atom
       xs <- many $ do
-        sp
         f <- do lit '+'; pure Add
         sp
         x <- atom
@@ -72,7 +74,6 @@ gram2 = separated nl exp
     exp = do
       x <- thing
       xs <- many $ do
-        sp
         f <- do lit '*'; pure Mul
         sp
         x <- thing
