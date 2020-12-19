@@ -3,7 +3,7 @@ module Day19 (main) where
 
 import Control.Applicative (many)
 import Misc (check)
-import ParE (Par,parse,separated,nl,int,key,alts,lit,sp)
+import Par4 (Par,parse,separated,nl,int,key,alts,lit,sp)
 import qualified Data.Map.Strict as Map
 
 main :: IO ()
@@ -77,22 +77,34 @@ type Message = [Let]
 
 gram :: Par Input
 gram = do
-  rules <- separated nl rule
-  nl
+  rules <- terminated nl rule
   messages <- separated nl line
   pure $ Input { rules, messages }
   where
     rule :: Par Rule
     rule = do
       n <- int
-      key ": "
-      r <- alts [rBase,rSeq,rAlt]
+      key ":"
+      r <- rhs []
       pure (n,r)
-
-    rBase,rSeq,rAlt :: Par Rhs
-    rBase = do lit '"'; x <- ab; lit '"'; pure $ Base x
-    rSeq = Seq <$> separated sp int
-    rAlt = do r1 <- rSeq; key " | "; r2 <- rSeq; pure $ Alt r1 r2
 
     line = many ab
     ab = alts [ do lit 'a'; pure A, do lit 'b'; pure B]
+
+    rhs :: [Int] -> Par Rhs
+    rhs acc = do
+      alts
+        [ pure $ Seq (reverse acc)
+        , do
+            sp;
+            alts [ do lit '"'; x <- ab; lit '"'; pure $ Base x
+                 , do x <- int; rhs (x:acc)
+                 , do
+                     key "| "
+                     r2 <- separated sp int
+                     pure $ Alt (Seq (reverse acc)) (Seq r2)
+                 ]
+        ]
+
+terminated :: Par () -> Par a -> Par [a]
+terminated term p = many (do x <- p; term; pure x)
