@@ -92,7 +92,7 @@ runLG s lang =
     prettySE :: EM.SyntaxError -> String
     prettySE = \case
       EM.UnexpectedTokenAt pos -> "unexpected " ++ show (s!!(pos-1)) ++ " at " ++ lc (pos-1)
-      EM.UnexpectedEOF{} -> "unexpected EOF"
+      EM.UnexpectedEOF pos -> "unexpected EOF at " ++ lc (pos-1)
       EM.ExpectedEOF pos -> "expected EOF at " ++ lc (pos-1)
 
     lc :: EM.Pos -> String
