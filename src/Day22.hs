@@ -20,22 +20,20 @@ part1 :: Game -> Int
 part1 = loop
   where
     loop g =
-      case over g of
-        Nothing -> loop (step g)
-        Just player -> scoreP player g
+      case step g of
+        Right g' -> loop g'
+        Left player -> scoreP player g
 
-    step :: Game -> Game
-    step Game{p1,p2} =
-      case (p1,p2) of
-        ([],_) -> error "step,p1=[]"
-        (_,[]) -> error "step,p2=[]"
-        (x1:p1,x2:p2) -> do
-          case winner of
-            P1 -> Game {p1 = p1 ++ [x1,x2], p2}
-            P2 -> Game {p2 = p2 ++ [x2,x1], p1}
-          where
-            winner = if (x1 > x2) then P1 else P2
-
+    step :: Game -> Either Player Game
+    step Game{p1,p2} = case (p1,p2) of
+      ([],_) -> Left P2
+      (_,[]) -> Left P1
+      (x1:p1,x2:p2) -> Right $
+        case winner of
+          P1 -> Game {p1 = p1 ++ [x1,x2], p2}
+          P2 -> Game {p2 = p2 ++ [x2,x1], p1}
+        where
+          winner = if (x1 > x2) then P1 else P2
 
 part2 :: Game -> Int
 part2 = play Set.empty
@@ -43,23 +41,23 @@ part2 = play Set.empty
     play :: Set Game -> Game -> Int
     play visited g = do
       if g `elem` visited then scoreP P1 g else
-        case over g of
-          Nothing -> play (Set.insert g visited) (step g)
-          Just player -> scoreP player g
+        case step g of
+          Right g' -> play (Set.insert g visited) g'
+          Left player -> scoreP player g
 
     playRec :: Set Game -> Game -> Player
     playRec visited g = do
       if g `elem` visited then P1 else
-        case over g of
-          Nothing -> playRec (Set.insert g visited) (step g)
-          Just player -> player
+        case step g of
+          Right g' -> playRec (Set.insert g visited) g'
+          Left player -> player
 
-    step :: Game -> Game
+    step :: Game -> Either Player Game
     step Game{p1,p2} =
       case (p1,p2) of
-        ([],_) -> error "step,p1=[]"
-        (_,[]) -> error "step,p2=[]"
-        (x1:p1,x2:p2) -> do
+        ([],_) -> Left P2
+        (_,[]) -> Left P1
+        (x1:p1,x2:p2) -> Right $
           case winner of
             P1 -> Game {p1 = p1 ++ [x1,x2], p2}
             P2 -> Game {p2 = p2 ++ [x2,x1], p1}
@@ -73,14 +71,7 @@ part2 = play Set.empty
                 if (x1 > x2) then P1 else P2
 
 
-
 data Player = P1 | P2
-
-over :: Game -> Maybe Player
-over Game{p1,p2} =
-  if p1==[] then Just P2 else
-    if p2==[] then Just P1 else
-      Nothing
 
 scoreP :: Player -> Game -> Int
 scoreP player Game{p1,p2} = do
