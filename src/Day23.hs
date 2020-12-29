@@ -1,9 +1,9 @@
 
 module Day23 (main) where
 
-import Data.Map (Map)
 import Misc (check)
-import qualified Data.Map.Strict as Map
+import Control.Monad.ST (ST,runST)
+import Data.Array.ST (STUArray,newArray_,writeArray,readArray)
 
 main :: IO ()
 main = do
@@ -13,85 +13,76 @@ main = do
   let !_ = check "67384529" $ part1 100 sam
   print ("day23, part1", check "65432978" $ part1 100 inp)
   --let !_ = check 149245887792 $ part2 1000000 sam
-  print ("day23, part1", check 287230227046 $ part2 1000000 inp) -- 50 seconds
+  print ("day23, part2", check 287230227046 $ part2 1000000 inp) -- 50 seconds --> 0.9s
 
 part1 :: Int -> String -> String
-part1 n xs = finalize1 (loop step n (init1 xs))
+part1 n string = runST $ do
+  let xs = [ read [c] | c <- string ]
+  circle <- makeCircle xs
+  _ <- loopM (step circle) n (head xs)
+  finalize1 circle
+
+finalize1 :: forall s. Circle s -> ST s String
+finalize1 Circle{right} = do
+  x <- right `readArray` 1
+  collect [] x
   where
-    init1 :: String -> Circle
-    init1 string = makeCircle [ read [c] | c <- string ]
+    collect :: [Int] -> Int -> ST s String
+    collect acc a = do
+      if a==1 then pure $ concat (map show (reverse acc)) else do
+        x <- right `readArray` a
+        collect (a:acc) x
 
 part2 :: Int -> String -> Int
-part2 sizeL xs = finalize2 $ loop step (10*sizeL) (init2 xs sizeL)
-  where
-    init2 :: String -> Int -> Circle
-    init2 string sizeL = do
-      let xs0 = [ read [c] | c <- string ]
-      let xs1 = [ length xs0 + 1 .. sizeL ]
-      makeCircle (xs0 ++ xs1)
+part2 sizeL string = runST $ do
+  let xs = [ read [c] | c <- string ] ++ [ length string + 1 .. sizeL ]
+  circle <- makeCircle xs
+  _ <- loopM (step circle) (10*sizeL) (head xs)
+  finalize2 circle
 
-loop :: (a -> a) -> Int -> a -> a
-loop f n x = if n == 0 then x else do
-  let! n' = n-1
-  let! x' = f x
-  loop f n' x'
+finalize2 :: forall s. Circle s -> ST s Int
+finalize2 Circle{right} = do
+  a <- right `readArray` 1
+  b <- right `readArray` a
+  pure $ a * b
 
-data Circle = Circle
-  { rightOf :: !(Map Int Int)
-  , point :: !Int
-  , size :: !Int
-  }
+loopM :: Monad m => Show a => (a -> m a) -> Int -> a -> m a
+loopM f n x = if n == 0 then pure x else do
+  let !n' = n-1
+  x' <- f x
+  loopM f n' x'
 
-finalize1 :: Circle -> String
-finalize1 Circle{rightOf} = loop [] (right 1)
-  where
-    loop :: [Int] -> Int -> String
-    loop acc a = do
-      if a==1 then concat (map show (reverse acc)) else do
-        loop (a:acc) (right a)
+data Circle s = Circle { size :: Int, right :: STUArray s Int Int }
 
-    right a = Map.findWithDefault (error $ "finalize1: " ++ show a) a rightOf
-
-finalize2 :: Circle -> Int
-finalize2 Circle{rightOf} = a * b
-  where
-    a = right 1
-    b = right a
-    right a = Map.findWithDefault (error $ "finalize2: " ++ show a) a rightOf
-
-makeCircle :: [Int] -> Circle
+makeCircle :: [Int] -> ST s (Circle s)
 makeCircle = \case
   [] -> error "makeCircle[]"
-  x:xs -> Circle {point=x, rightOf, size = length xs + 1}
-    where
-      rightOf = Map.fromList (zip (x:xs) (xs++[x]))
+  x:xs -> do
+    let size = length xs + 1
+    right <- newArray_ (1,size)
+    sequence_ [ writeArray right i e | (i,e) <- zip (x:xs) (xs ++ [x]) ]
+    pure Circle {size, right}
 
-step :: Circle -> Circle
-step c@Circle{size,point,rightOf} = do
-  let p1 = right point
-  let p2 = right p1
-  let p3 = right p2
-  let p4 = right p3
-  let target = findTarget (p1,p2,p3) point
-  let target1 = right target
-  let ups = [ setR target p1
-            , setR p3 target1
-            , setR point p4
-            ]
-  c { point = p4, rightOf = foldl (.) id ups rightOf}
+step :: forall s. Circle s -> Int -> ST s Int
+step Circle{size,right} point = do
+  p1 <- right `readArray` point
+  p2 <- right `readArray` p1
+  p3 <- right `readArray` p2
+  p4 <- right `readArray` p3
+  let target = findTarget size (p1,p2,p3) point
+  target1 <- right `readArray` target
+  writeArray right target p1
+  writeArray right p3 target1
+  writeArray right point p4
+  pure p4
+
+findTarget :: Int -> (Int,Int,Int) -> Int -> Int
+findTarget size (x1,x2,x3) orig = loopDec orig
   where
-    right :: Int -> Int
-    right n = Map.findWithDefault (error $ "right: " ++ show n) n rightOf
-
-    setR a b = Map.insert a b
-
-    findTarget :: (Int,Int,Int) -> Int -> Int
-    findTarget (x1,x2,x3) orig = loopDec orig
-      where
-        loopDec n = do
-          let n1 = dec n
-          if n1 == x1 || n1 == x2 || n1 == x3 then loopDec n1 else n1
-        dec :: Int -> Int
-        dec n = do
-          let n1 = n - 1
-          if n1==0 then size else n1
+    loopDec n = do
+      let n1 = dec n
+      if n1 == x1 || n1 == x2 || n1 == x3 then loopDec n1 else n1
+    dec :: Int -> Int
+    dec n = do
+      let n1 = n - 1
+      if n1==0 then size else n1
